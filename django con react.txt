@@ -1,0 +1,270 @@
+
+CREACION DEL BACK-END
+
+
+entorno virtual
+
+pip install virtualenv
+
+para crear entornos virtuales
+
+python -m venv venv(nombre de la carpeta)
+
+
+luego presiona f1 para elegir el interprete de python (el que tenga estrella)
+
+luego instalar django 
+
+pip install django
+
+
+luego usar el:
+
+django-admin startproject django_crud_api .
+
+
+
+abrir la app con :
+
+python manage.py runserver
+
+
+iniciar el servicio
+python manage.py startapp tasks
+
+
+en settings.py en installed_apps agregar el servicio 'tasks'
+
+migrar los servicios 
+python manage.py migrate
+
+
+instalar rest framework
+pip install djangorestframework
+
+para que funcionen dos servidores (autorizar un servidor para que funcione el backend 
+hay un modulo que lo simplifica)
+
+pip install django-cors-headers
+(lo que hace es agregar headers lo que hace es agregar string que indican quien puede conectarse a mi backend)
+
+vamos al proyecto settings.py
+en INSTALLED_APP se agrega el rest_framework 
+tambien se agrega corsheaders primero 
+
+esto es para que soporte mas de un servidor
+
+
+en los middlware:
+
+"corsheaders.middleware.CorsMiddleware", 	(este se inserta arriba de ese middleware)
+'django.middleware.common.CommonMiddleware',
+
+
+
+aca le indico que servidores se pueden conectar a django
+CORS_ALLOWED_ORIGINS = []
+
+
+
+MODELO DE TAREAS
+
+a traves de una clase de python se pueden crear las tablas
+
+
+en el proyecto (en el interior)
+en models.py crearemos una tabla 
+y la clase tarea nos pide que herede su model de la clase Models
+
+en models del proyecto:
+
+class Task(models.Model):
+    titulo = models.CharField(max_length=200)
+    descripcion = models.TextField(blank = True)
+    hecho = models.BooleanField(default= False)
+    
+(las tablas que ocupare)
+
+
+
+para que haga las tablas:
+python manage.py makemigrations (aca va el nombre de proyecto)
+python manage.py makemigrations
+
+con este comando se agregan las tablas 
+python manage.py migrate (aca va el nombre del proyecto)
+
+PARA CREAR UN USUARIO EN DJANGO
+python manage.py createsuperuser 
+
+
+añadir nuestras tablas al panel del administrador
+
+en carpeta del proyecto en admin.py agregar
+
+admin.site.register(task)
+
+se puede desde el models importar las tablas
+
+from django.db import models
+
+# Create your models here.
+
+
+class Task(models.Model):
+    titulo = models.CharField(max_length=200)
+    descripcion = models.TextField(blank = True)
+    hecho = models.BooleanField(default= False)
+
+    #aca le indico el nombre que quiero que aparesca en la tabla
+    def __str__(self) :
+        return self.titulo
+
+
+
+
+DJANGO REST FRAMEWORK
+para crear una api
+
+
+ahora vamos a decirle al modelo (models) los datos que quiero enviar desde el backend y puedan ser convertidos en JSON y despues se convierte en un queryset 
+
+de un tipo de dato de django a un tipo de dato de python y despues a JSON (convertir una y otra vez) ===> DJANGO REST FRAMEWORK LO HACE
+
+para hacer eso 
+Ahora se crea un archivo llamado serializer.py
+en el interiorr
+
+from rest_framework import serializers
+
+class TaskSerializer(serializers.ModelSerializer):
+    class Meta:
+        # fields = ('id','titulo','descripcion','hecho')
+	fields = '__all__'
+
+ SI QUIERES LLAMAR ALGUNO ESPECIFICO
+PERO SE PUEDE LLAMAR TODO DE UNA CON ALL
+
+DJANGO PONE UN ID 
+fields = '__all__' == con esto llama a todas las tablas 
+
+
+from rest_framework import serializers
+from .models import Task
+
+class TaskSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Task
+        fields = '__all__'
+
+
+
+
+AHORA SE CREA UNA VISTA....
+
+SOLO CREAR UN CRUD
+
+from rest_framework import viewsets
+from .serializer import TaskSerializer
+from .models import Task
+
+# Create your views here.
+
+class tareaVista(viewsets.ModelViewSet):
+    serializer_class = TaskSerializer
+    queryset = Task.objets.all()
+
+
+AHORA HAY QUE AGREGAR LAS RUTA URLs.PY
+from django.urls import path, include
+from rest_framework import routers
+from tasks import views
+
+
+router = routers.DefaultRouter()
+router.register(r'tasks', views.TaskView, 'tasks')
+#versionado
+urlpatterns = [
+    path("api/v1", include(router.urls))    
+]
+
+##con esto ya tengo las url generadas
+#GET
+#POST
+#PUT
+#DELETE
+
+
+AHORA AGREGAMOS OTRA RUTA AL URLS.PY GENERAL
+
+
+en el patterns se agrega = path('tasks/', include('tasks.urls')
+
+en el include en = from django.urls import path, include
+
+
+http://127.0.0.1:8000/admin/tasks/task/
+http://localhost:8000/tasks/api/v1/tasks/
+
+
+modulo adicional 
+
+documentacion
+
+pip install coreapi
+se configura en INSTALLED_APP
+encima del nombre del proyecto
+'coreapi',
+
+
+en url del proyecto agregar  al path
+
+path('docs/', include_docs_urls(title="tareas API"))   
+
+
+en setting 
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
+}
+
+
+http://localhost:8000/tasks/docs/
+
+
+
+
+
+CREACION DEL FRONT-END
+con vitejs
+vitejs.dev
+
+
+
+
+despues instalar los sgtes modulos
+
+npm i react-router-dom react-hot-toast axios react-hook-form 
+
+luego crea las carpeta pages y components(botones, listas, fomrularios se pueden guardar en components)
+
+luego se crea un carpeta llamada API que funciones pueden pedir datos en el backend
+
+para iniciar el servicio de vite.js escribir en la carpeta del proyecto
+
+NPM RUN DEV
+
+
+
+
+
+PAGINAS
+
+http://localhost:8000/tasks/api/v1/tasks/
+http://localhost:8000/tasks/docs/
+http://127.0.0.1:8000/admin/tasks/task/
+http://localhost:5173/tasks
+
+
+
+
+
